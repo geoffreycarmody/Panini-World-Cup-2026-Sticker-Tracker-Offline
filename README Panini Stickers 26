@@ -1,0 +1,91 @@
+[README.md](https://github.com/user-attachments/files/27417285/README.md)
+# ⚽ Panini FIFA World Cup 2026 – Sticker Tracker
+
+A single-file, offline-first HTML sticker tracker for the official **Panini FIFA World Cup 2026** sticker album. No app, no account, no internet required — just open the file in any browser and start ticking.
+
+---
+
+## Features
+
+- **All 992 stickers tracked** — 48 teams × 20 stickers, 20 introduction foil stickers, and 12 Coca-Cola bonus stickers
+- **Foil stickers** — team badges (sticker 1) and all FWC intro stickers animate with a sweeping silver shimmer; the shimmer continues in silver when ticked
+- **Completed team celebration** — finish a team and its header turns solid medal gold with a gentle glow
+- **Hover colours** — green glow for incomplete teams, gold glow for completed ones
+- **Coca-Cola section** — 12 bonus sticker slots styled in Coca-Cola red, found under bottle labels
+- **Persistent progress** — ticks are saved automatically in browser `localStorage`; no button required
+- **Export Progress** — bakes your current ticks into a new copy of the HTML file so you can move your collection between devices without losing anything
+- **Smart reset** — Reset All clears everything without the baked data bouncing straight back
+- **Filter buttons** — view All / Incomplete Only / Complete Sets / Not Started
+- **Fully offline** — one self-contained `.html` file, no dependencies, no CDN calls
+- **Built-in FAQ** — collapsible how-to guide inside the file for anyone who downloads it
+
+---
+
+## How to Use
+
+1. **Download** `World_Cup_2026_Sticker_Tracker.html`
+2. **Double-click** the file to open it in your browser
+3. **Tick** any sticker box you own — it saves instantly
+4. Use **↓ Export Progress** to download a copy with your ticks baked in for sharing or moving to another device
+
+> If you downloaded from Reddit or a zip archive, make sure to **save the file first**, then open it — don't preview it inside the archive.
+
+---
+
+## Moving Between Devices
+
+Progress is stored in your browser's `localStorage`, which is device- and browser-specific. To move your collection:
+
+1. Click **↓ Export Progress** — downloads a new HTML file with your ticks embedded in the source
+2. Send it to your other device (email, WhatsApp, AirDrop, etc.)
+3. Open it there — all your ticks are already present
+4. Repeat whenever you collect more stickers
+
+---
+
+## Sticker Breakdown
+
+| Section | Stickers | Notes |
+|---|---|---|
+| Introduction & FWC | 20 | All foil — Panini logo, emblems, mascot, ball, host nations, FIFA Museum |
+| 48 Teams | 960 | 20 per team; sticker 1 (badge) is foil for every team |
+| Coca-Cola Bonus | 12 | Found under Coca-Cola bottle labels |
+| **Total** | **992** | |
+
+---
+
+## Foil Stickers
+
+Foil sticker boxes display a sweeping blue-to-silver shimmer animation when empty. When ticked, the gradient shifts to solid silver and the sweep continues — the animation never stops, it just changes colour.
+
+---
+
+## Completed Teams
+
+When you tick all 20 stickers for a team, the team header turns **medal gold** with a soft pulsing glow around it. Hover over any incomplete team for a green glow; hover a completed team for gold.
+
+---
+
+## Sharing a Blank Copy
+
+The file is self-contained and sharable as-is. To share a blank copy (no pre-ticked stickers):
+
+- Use **Reset All** on your copy, then share — but note this clears *your* progress too
+- Better: keep your personal copy and share the original blank download
+
+The built-in FAQ inside the file explains everything to new users who download it.
+
+---
+
+## Technical Notes
+
+- **No frameworks or dependencies** — pure HTML, CSS, and vanilla JavaScript
+- **Single file** — everything including styles, logic, and data is in one `.html` file
+- **Export mechanism** — captures the clean DOM before cards are rendered, replaces the baked data blocks using comment markers (`// __TEAMS_START__` etc.), and triggers a file download via a Blob URL
+- **localStorage key** — `wc2026_stickers`
+
+---
+
+## License
+
+Do whatever you want with it. Share it, fork it, improve it.
