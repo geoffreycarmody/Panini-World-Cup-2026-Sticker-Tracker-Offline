@@ -1,0 +1,424 @@
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panini FIFA World Cup 2026 – Sticker Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0a1628;
+    color: #e8eaf0;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h1 { text-align: center; font-size: 1.8rem; color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.4); margin-bottom: 6px; }
+  #summary { text-align: center; font-size: 0.95rem; color: #aab; margin-bottom: 8px; }
+  #total-bar-wrap { max-width: 600px; margin: 0 auto 24px; background: #1e2d4a; border-radius: 8px; height: 12px; overflow: hidden; }
+  #total-bar { height: 100%; background: linear-gradient(90deg, #ffd700, #ff8c00); border-radius: 8px; transition: width 0.3s; }
+
+  .filter-bar { text-align: center; margin-bottom: 20px; }
+  .filter-bar button {
+    background: #1e2d4a; color: #ccd; border: 1px solid #334;
+    padding: 6px 16px; border-radius: 20px; cursor: pointer; margin: 3px;
+    font-size: 0.82rem; transition: all 0.2s;
+  }
+  .filter-bar button:hover, .filter-bar button.active {
+    background: #ffd700; color: #0a1628; border-color: #ffd700; font-weight: bold;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; max-width: 1400px; margin: 0 auto; }
+
+  .team-card { background: #132038; border: 1px solid #1e3055; border-radius: 10px; overflow: hidden; transition: box-shadow 0.2s; }
+  .team-card:hover { box-shadow: 0 4px 20px rgba(0,200,83,0.3); }
+  .team-complete:hover { box-shadow: 0 4px 20px rgba(212,175,55,0.5); }
+
+  /* Intro and Coke cards span full width */
+  .intro-card, .coke-card { grid-column: 1 / -1; }
+
+  .intro-card .team-header { background: linear-gradient(135deg, #0c1e3a 0%, #162848 50%, #0c1e3a 100%); border-bottom-color: #263a5a; }
+  .intro-card .team-name { color: #c0b0f0; }
+  .intro-card:hover { box-shadow: 0 4px 20px rgba(160,140,220,0.35) !important; }
+
+  /* Coca-Cola card */
+  .coke-card .team-header { background: linear-gradient(135deg, #8b0000 0%, #cc0000 45%, #8b0000 100%); border-bottom-color: #cc0000; }
+  .coke-card .team-name { color: #ffffff; font-weight: 800; letter-spacing: 0.03em; }
+  .coke-card .team-count { color: rgba(255,255,255,0.8); }
+  .coke-card .team-progress-fill { background: linear-gradient(90deg, #cc0000, #ff3333); }
+  .coke-card:hover { box-shadow: 0 4px 20px rgba(204,0,0,0.45) !important; }
+
+  .team-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #1a2d4e; border-bottom: 1px solid #243555; }
+  .team-name { font-weight: 700; font-size: 0.95rem; color: #e8f0ff; }
+  .team-count { font-size: 0.8rem; color: #aab; white-space: nowrap; }
+  .team-progress { height: 4px; background: #0d1e36; }
+  .team-progress-fill { height: 100%; background: linear-gradient(90deg, #00c853, #64dd17); transition: width 0.3s; }
+
+  .stickers { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; padding: 10px; }
+  .sticker-label { display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 4px 2px; border-radius: 6px; transition: background 0.15s; user-select: none; }
+  .sticker-label:hover { background: #1e3860; }
+  .sticker-label input[type="checkbox"] { display: none; }
+  .sticker-box {
+    width: 24px; height: 24px; border-radius: 5px; border: 2px solid #334;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; background: #0d1e36;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .sticker-num { font-size: 0.62rem; color: #778; margin-top: 2px; }
+
+  /* Standard tick */
+  input:checked + .sticker-box { background: #00c853; border-color: #00c853; box-shadow: 0 0 8px rgba(0,200,83,0.4); }
+  input:checked + .sticker-box::after { content: '✓'; color: white; font-weight: bold; font-size: 13px; }
+  input:not(:checked) + .sticker-box::after { content: ''; }
+  label:has(input:checked) .sticker-num { color: #00c853; font-weight: bold; }
+
+  /* ── Foil stickers ── */
+  @keyframes foil-sweep {
+    0%   { background-position: 220% center; }
+    100% { background-position: -220% center; }
+  }
+  /* Unchecked: dark blue with silver sweep */
+  .foil-sticker .sticker-box {
+    background: linear-gradient(110deg, #0d1e36 20%, #2a4460 38%, #6a90b0 50%, #2a4460 62%, #0d1e36 80%);
+    background-size: 300% auto;
+    border-color: #4a6a8a;
+    animation: foil-sweep 4s linear infinite;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  /* Checked: silver gradient — animation continues from rule above, just changes colours */
+  .foil-sticker input:checked + .sticker-box {
+    background: linear-gradient(110deg, #5a6878 15%, #9ab4c8 38%, #dceaf6 50%, #9ab4c8 62%, #5a6878 85%);
+    background-size: 300% auto;
+    border-color: #88a8c4;
+    box-shadow: 0 0 10px rgba(136,168,200,0.55);
+  }
+  .foil-sticker input:checked + .sticker-box::after { color: #0a1628; }
+  .foil-sticker:has(input:checked) .sticker-num { color: #88a8c4; font-weight: bold; }
+
+  /* ── Coca-Cola stickers ── */
+  .coke-sticker .sticker-box { border-color: #5a0a0a; background: #110608; }
+  .coke-sticker input:checked + .sticker-box { background: #e61c23; border-color: #e61c23; box-shadow: 0 0 10px rgba(230,28,35,0.55); }
+  .coke-sticker input:checked + .sticker-box::after { color: #ffffff; }
+  .coke-sticker:has(input:checked) .sticker-num { color: #e61c23; font-weight: bold; }
+
+  /* ── Completed team gold ── */
+  @keyframes gold-shimmer {
+    0%   { box-shadow: 0 0 8px 3px rgba(212,175,55,0.45); }
+    50%  { box-shadow: 0 0 14px 5px rgba(212,175,55,0.65); }
+    100% { box-shadow: 0 0 8px 3px rgba(212,175,55,0.45); }
+  }
+  .team-complete .team-header { background: linear-gradient(135deg, #b8860b 0%, #d4af37 45%, #c8960c 100%); animation: gold-shimmer 5s ease-in-out infinite; border-bottom-color: #d4af37; }
+  .team-complete .team-name { color: #0a1628; font-weight: 800; letter-spacing: 0.02em; }
+  .team-complete .team-count { color: #0a1628; }
+
+  /* ── FAQ ── */
+  .faq-wrap { max-width: 700px; margin: 0 auto 24px; }
+  .faq-toggle { display: block; width: 100%; background: #1e2d4a; color: #ffd700; border: 1px solid #334; border-radius: 8px; padding: 8px 16px; font-size: 0.88rem; cursor: pointer; text-align: center; letter-spacing: 0.03em; }
+  .faq-toggle:hover { background: #243555; }
+  .faq-body { display: none; background: #0f1e36; border: 1px solid #1e3055; border-top: none; border-radius: 0 0 8px 8px; padding: 16px 20px; }
+  .faq-body.open { display: block; }
+  .faq-body h3 { color: #ffd700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 4px; }
+  .faq-body h3:first-child { margin-top: 0; }
+  .faq-body p { font-size: 0.85rem; color: #b0bcd4; line-height: 1.55; }
+  .faq-body p span.key { background: #1e2d4a; border: 1px solid #334; border-radius: 4px; padding: 1px 6px; font-size: 0.8rem; color: #e8f0ff; white-space: nowrap; }
+
+  @media print {
+    body { background: white; color: black; padding: 10px; }
+    h1 { color: #003087; text-shadow: none; }
+    .filter-bar, .faq-wrap { display: none; }
+    .team-card { border: 1px solid #ccc; break-inside: avoid; background: white; }
+    .team-header { background: #003087 !important; animation: none !important; }
+    .team-name, .team-count { color: white !important; }
+    .sticker-box { border-color: #999; background: white; animation: none !important; }
+    input:checked + .sticker-box { background: #003087; border-color: #003087; }
+    #total-bar-wrap { background: #ddd; }
+    .intro-card, .coke-card { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+
+<h1>⚽ Panini FIFA World Cup 2026</h1>
+<div id="summary">Loading...</div>
+<div id="total-bar-wrap"><div id="total-bar" style="width:0%"></div></div>
+
+<div class="faq-wrap">
+  <button class="faq-toggle" onclick="this.nextElementSibling.classList.toggle('open')">ⓘ How to use this tracker ▾</button>
+  <div class="faq-body">
+    <h3>What is this?</h3>
+    <p>A tracker for the official <strong>Panini FIFA World Cup 2026</strong> sticker album. All 48 teams (stickers 1–20 each) plus the 20 introduction FWC foil stickers and 12 Coca-Cola bonus stickers — 992 stickers total. Tick off what you own.</p>
+    <h3>How do I tick a sticker?</h3>
+    <p>Click or tap any sticker box to toggle it on <span class="key">✓ owned</span> or off <span class="key">□ needed</span>. Changes save instantly.</p>
+    <h3>What are the shimmering silver stickers?</h3>
+    <p>Those are <strong>foil stickers</strong>. Every team badge (sticker 1) and all 20 FWC introduction stickers are foil. The shimmer continues when ticked — it just switches to silver.</p>
+    <h3>What are the red stickers?</h3>
+    <p>The <strong>Coca-Cola bonus stickers</strong> — found under Coca-Cola bottle labels. Twelve placeholder slots are included; tick them as you find them.</p>
+    <h3>Will my ticks be saved if I close the browser?</h3>
+    <p>Yes — stored in browser local storage on <strong>this device and browser</strong>. Survives closing and reopening as long as you don't clear browser data.</p>
+    <h3>How do I move my progress to another device?</h3>
+    <p>Click <span class="key">↓ Export Progress</span>. Downloads a new copy of the file with all your ticks baked in. Send it anywhere and your collection travels with it.</p>
+    <h3>How do I filter the teams?</h3>
+    <p><span class="key">Incomplete Only</span> shows teams you've started but not finished. <span class="key">Not Started</span> shows zero-sticker teams. The introduction and Coca-Cola sections always stay pinned at the top.</p>
+    <h3>How do I reset everything?</h3>
+    <p>Click the red <span class="key">Reset All</span> button and confirm. Clears ticks in this browser only — exported copies are unaffected.</p>
+    <h3>Does this need internet / an account?</h3>
+    <p>No. Fully offline. Open in any modern browser — Chrome, Firefox, Safari, Edge. No install, no sign-in.</p>
+    <h3>The file looks broken / nothing loads</h3>
+    <p>Double-click the file to open it directly in a browser. Don't preview inside a zip. If downloaded from Reddit, save it first then open it.</p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="active" onclick="filterTeams('all', this)">All Teams</button>
+  <button onclick="filterTeams('incomplete', this)">Incomplete Only</button>
+  <button onclick="filterTeams('complete', this)">Complete Sets</button>
+  <button onclick="filterTeams('none', this)">Not Started</button>
+  <button onclick="exportProgress()" style="background:#1a5e20;color:#fff;border-color:#1a5e20">↓ Export Progress</button>
+  <button onclick="resetAll()" style="background:#8b0000;color:#fff;border-color:#8b0000">Reset All</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const DATA_VERSION = 3;
+
+// __INTRO_STATE_START__
+const INTRO_OWNED = [];
+// __INTRO_STATE_END__
+
+// __COKE_STATE_START__
+const COKE_OWNED = [];
+// __COKE_STATE_END__
+
+// __TEAMS_START__
+const TEAMS = [
+  ["Mexico",[]],
+  ["South Africa",[]],
+  ["South Korea",[]],
+  ["Czechia",[]],
+  ["Canada",[]],
+  ["Bosnia and Herzegovina",[]],
+  ["Qatar",[]],
+  ["Switzerland",[]],
+  ["Brazil",[]],
+  ["Morocco",[]],
+  ["Haiti",[]],
+  ["Scotland",[]],
+  ["USA",[]],
+  ["Paraguay",[]],
+  ["Australia",[]],
+  ["Türkiye",[]],
+  ["Germany",[]],
+  ["Curaçao",[]],
+  ["Ivory Coast",[]],
+  ["Ecuador",[]],
+  ["Netherlands",[]],
+  ["Japan",[]],
+  ["Sweden",[]],
+  ["Tunisia",[]],
+  ["Belgium",[]],
+  ["Egypt",[]],
+  ["Iran",[]],
+  ["New Zealand",[]],
+  ["Spain",[]],
+  ["Cape Verde",[]],
+  ["Saudi Arabia",[]],
+  ["Uruguay",[]],
+  ["France",[]],
+  ["Senegal",[]],
+  ["Iraq",[]],
+  ["Norway",[]],
+  ["Argentina",[]],
+  ["Algeria",[]],
+  ["Austria",[]],
+  ["Jordan",[]],
+  ["Portugal",[]],
+  ["Congo DR",[]],
+  ["Uzbekistan",[]],
+  ["Colombia",[]],
+  ["England",[]],
+  ["Croatia",[]],
+  ["Ghana",[]],
+  ["Panama",[]]
+];
+// __TEAMS_END__
+
+const INTRO_STICKERS = ["00","FWC1","FWC2","FWC3","FWC4","FWC5","FWC6","FWC7","FWC8",
+                        "FWC9","FWC10","FWC11","FWC12","FWC13","FWC14","FWC15","FWC16","FWC17","FWC18","FWC19"];
+const INTRO_LABELS = {"00":"00","FWC1":"F1","FWC2":"F2","FWC3":"F3","FWC4":"F4","FWC5":"F5",
+  "FWC6":"F6","FWC7":"F7","FWC8":"F8","FWC9":"F9","FWC10":"F10","FWC11":"F11","FWC12":"F12",
+  "FWC13":"F13","FWC14":"F14","FWC15":"F15","FWC16":"F16","FWC17":"F17","FWC18":"F18","FWC19":"F19"};
+
+const COKE_STICKERS = ["CC1","CC2","CC3","CC4","CC5","CC6","CC7","CC8","CC9","CC10","CC11","CC12"];
+
+const INTRO_KEY = '__intro__';
+const COKE_KEY  = '__coke__';
+const STORAGE_KEY = 'wc2026_stickers';
+const TOTAL = 48 * 20 + INTRO_STICKERS.length + COKE_STICKERS.length;
+
+let _resetting = false;
+
+function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } }
+function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+function teamKey(n) { return n.replace(/\s+/g, '_'); }
+
+function updateSummary() {
+  const s = loadState();
+  let total = 0;
+  if (s[INTRO_KEY]) total += Object.values(s[INTRO_KEY]).filter(v => v === true).length;
+  if (s[COKE_KEY])  total += Object.values(s[COKE_KEY]).filter(v => v === true).length;
+  TEAMS.forEach(([name]) => { const k = teamKey(name); if (s[k]) total += Object.values(s[k]).filter(v => v === true).length; });
+  const pct = Math.round(total / TOTAL * 100);
+  document.getElementById('summary').textContent = `${total} / ${TOTAL} stickers collected (${pct}%)`;
+  document.getElementById('total-bar').style.width = pct + '%';
+}
+
+function updateCount(k) {
+  const s = loadState();
+  if (k === INTRO_KEY) {
+    const n = s[INTRO_KEY] ? Object.values(s[INTRO_KEY]).filter(v => v === true).length : 0;
+    const c = document.querySelector('[data-type="intro"]');
+    if (c) { c.querySelector('.team-count').textContent = `${n}/${INTRO_STICKERS.length}`; c.querySelector('.team-progress-fill').style.width = (n/INTRO_STICKERS.length*100)+'%'; }
+  } else if (k === COKE_KEY) {
+    const n = s[COKE_KEY] ? Object.values(s[COKE_KEY]).filter(v => v === true).length : 0;
+    const c = document.querySelector('[data-type="coke"]');
+    if (c) { c.querySelector('.team-count').textContent = `${n}/${COKE_STICKERS.length}`; c.querySelector('.team-progress-fill').style.width = (n/COKE_STICKERS.length*100)+'%'; }
+  } else {
+    const n = s[k] ? Object.values(s[k]).filter(v => v === true).length : 0;
+    const c = document.querySelector(`[data-team="${k}"]`);
+    if (c) { c.querySelector('.team-count').textContent = `${n}/20`; c.querySelector('.team-progress-fill').style.width = (n/20*100)+'%'; c.classList.toggle('team-complete', n === 20); }
+  }
+}
+
+function makeLabel(extraClass, dataTeam, dataNum, checked, labelText) {
+  const lbl = document.createElement('label');
+  lbl.className = 'sticker-label' + (extraClass ? ' ' + extraClass : '');
+  lbl.innerHTML = `<input type="checkbox" ${checked} data-team="${dataTeam}" data-num="${dataNum}"><div class="sticker-box"></div><span class="sticker-num">${labelText}</span>`;
+  lbl.querySelector('input').addEventListener('change', onCheck);
+  return lbl;
+}
+
+function buildCards() {
+  const s = loadState();
+
+  // Seed from baked data — skipped on reset so stickers don't bounce back
+  if (!s[INTRO_KEY]) s[INTRO_KEY] = {};
+  if (!s[COKE_KEY])  s[COKE_KEY]  = {};
+  if (!_resetting) {
+    INTRO_OWNED.forEach(id => { if (!(id in s[INTRO_KEY])) s[INTRO_KEY][id] = true; });
+    COKE_OWNED.forEach(id  => { if (!(id in s[COKE_KEY]))  s[COKE_KEY][id]  = true; });
+    TEAMS.forEach(([name, initial]) => {
+      const k = teamKey(name);
+      if (!s[k]) s[k] = {};
+      initial.forEach(n => { if (!(n in s[k])) s[k][n] = true; });
+    });
+  } else {
+    TEAMS.forEach(([name]) => { if (!s[teamKey(name)]) s[teamKey(name)] = {}; });
+  }
+  s.__version = DATA_VERSION;
+  saveState(s);
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  // ── Intro card ──
+  const introOwned = Object.values(s[INTRO_KEY]).filter(v => v === true).length;
+  const introCard = document.createElement('div');
+  introCard.className = 'team-card intro-card';
+  introCard.dataset.type = 'intro';
+  introCard.innerHTML = `<div class="team-header"><span class="team-name">✦ Introduction &amp; FWC Foil Stickers</span><span class="team-count">${introOwned}/${INTRO_STICKERS.length}</span></div><div class="team-progress"><div class="team-progress-fill" style="width:${introOwned/INTRO_STICKERS.length*100}%"></div></div><div class="stickers" id="stickers-intro"></div>`;
+  const introDiv = introCard.querySelector('#stickers-intro');
+  INTRO_STICKERS.forEach(id => { introDiv.appendChild(makeLabel('foil-sticker', INTRO_KEY, id, s[INTRO_KEY][id] ? 'checked' : '', INTRO_LABELS[id])); });
+  grid.appendChild(introCard);
+
+  // ── Coca-Cola card ──
+  const cokeOwned = Object.values(s[COKE_KEY]).filter(v => v === true).length;
+  const cokeCard = document.createElement('div');
+  cokeCard.className = 'team-card coke-card';
+  cokeCard.dataset.type = 'coke';
+  cokeCard.innerHTML = `<div class="team-header"><span class="team-name">🥤 Coca-Cola Bonus Stickers</span><span class="team-count">${cokeOwned}/${COKE_STICKERS.length}</span></div><div class="team-progress"><div class="team-progress-fill" style="width:${cokeOwned/COKE_STICKERS.length*100}%"></div></div><div class="stickers" id="stickers-coke"></div>`;
+  const cokeDiv = cokeCard.querySelector('#stickers-coke');
+  COKE_STICKERS.forEach(id => { cokeDiv.appendChild(makeLabel('coke-sticker', COKE_KEY, id, s[COKE_KEY][id] ? 'checked' : '', id)); });
+  grid.appendChild(cokeCard);
+
+  // ── Team cards ──
+  TEAMS.forEach(([name]) => {
+    const k = teamKey(name);
+    const owned = Object.values(s[k]).filter(v => v === true).length;
+    const card = document.createElement('div');
+    card.className = 'team-card' + (owned === 20 ? ' team-complete' : '');
+    card.dataset.team = k;
+    card.innerHTML = `<div class="team-header"><span class="team-name">${name}</span><span class="team-count">${owned}/20</span></div><div class="team-progress"><div class="team-progress-fill" style="width:${owned/20*100}%"></div></div><div class="stickers" id="stickers-${k}"></div>`;
+    const div = card.querySelector(`#stickers-${k}`);
+    for (let i = 1; i <= 20; i++) { div.appendChild(makeLabel(i === 1 ? 'foil-sticker' : '', k, i, s[k][i] ? 'checked' : '', i)); }
+    grid.appendChild(card);
+  });
+
+  updateSummary();
+}
+
+function onCheck(e) {
+  const s = loadState();
+  const k = e.target.dataset.team;
+  const isStr = (k === INTRO_KEY || k === COKE_KEY);
+  const n = isStr ? e.target.dataset.num : parseInt(e.target.dataset.num);
+  if (!s[k]) s[k] = {};
+  s[k][n] = e.target.checked;
+  saveState(s);
+  updateCount(k);
+  updateSummary();
+}
+
+function filterTeams(mode, btn) {
+  document.querySelectorAll('.filter-bar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const s = loadState();
+  document.querySelectorAll('.team-card').forEach(card => {
+    if (card.dataset.type === 'intro' || card.dataset.type === 'coke') { card.style.display = ''; return; }
+    const k = card.dataset.team;
+    const owned = s[k] ? Object.values(s[k]).filter(v => v === true).length : 0;
+    let show = true;
+    if (mode === 'incomplete') show = owned > 0 && owned < 20;
+    else if (mode === 'complete') show = owned === 20;
+    else if (mode === 'none') show = owned === 0;
+    card.style.display = show ? '' : 'none';
+  });
+}
+
+function resetAll() {
+  if (!confirm('Reset ALL checkboxes? This cannot be undone.')) return;
+  _resetting = true;
+  localStorage.removeItem(STORAGE_KEY);
+  buildCards();
+  _resetting = false;
+}
+
+function exportProgress() {
+  const s = loadState();
+
+  const introOwned = s[INTRO_KEY] ? INTRO_STICKERS.filter(id => s[INTRO_KEY][id] === true) : [];
+  const cokeOwned  = s[COKE_KEY]  ? COKE_STICKERS.filter(id => s[COKE_KEY][id] === true)   : [];
+
+  const introStr = '// __INTRO_STATE_START__\nconst INTRO_OWNED = ' + JSON.stringify(introOwned) + ';\n// __INTRO_STATE_END__';
+  const cokeStr  = '// __COKE_STATE_START__\nconst COKE_OWNED = '  + JSON.stringify(cokeOwned)  + ';\n// __COKE_STATE_END__';
+  const teamsStr = '// __TEAMS_START__\nconst TEAMS = [\n' +
+    TEAMS.map(([name]) => {
+      const k = teamKey(name);
+      const owned = s[k] ? Object.entries(s[k]).filter(([,v]) => v === true).map(([n]) => parseInt(n)).filter(n => !isNaN(n)).sort((a,b) => a-b) : [];
+      return '  ' + JSON.stringify([name, owned]);
+    }).join(',\n') + '\n];\n// __TEAMS_END__';
+
+  const updated = PAGE_TEMPLATE
+    .replace(/\/\/ __INTRO_STATE_START__[\s\S]*?\/\/ __INTRO_STATE_END__/, introStr)
+    .replace(/\/\/ __COKE_STATE_START__[\s\S]*?\/\/ __COKE_STATE_END__/, cokeStr)
+    .replace(/\/\/ __TEAMS_START__[\s\S]*?\/\/ __TEAMS_END__/, teamsStr);
+
+  const blob = new Blob([updated], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'World_Cup_2026_Sticker_Tracker.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+const PAGE_TEMPLATE = document.documentElement.outerHTML;
+buildCards();
+</script></body></html>
